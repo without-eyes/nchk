@@ -23,7 +23,19 @@ else
   exit 1
 fi
 
-# Packet loss or high latency
+# Packet loss
+ip_address="8.8.8.8"
+
+echo -n "Checking packet loss: "
+ping_result=$(ping -q -c 10 -i 0.2 -w 3 "$ip_address")
+packet_loss=$(echo "$ping_result" | grep -oP '\d+(?=% packet loss)')
+if [ "$packet_loss" -eq 0 ]; then
+  echo "No packet loss"
+else
+  echo "Packet loss is $packet_loss"
+fi
+
+# High latency
 # Wrong IP address, subnet mask, or gateway
 # Routing table issues or misconfigured routes
 # Firewall blocking traffic
