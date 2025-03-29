@@ -35,7 +35,15 @@ else
   echo "Packet loss is $packet_loss"
 fi
 
-# High latency
+# Latency
+echo -n "Checking latency: "
+avg_latency="$(echo "$ping_result" | sed -n 5p | tr "/" " " | awk '{print $8}' | tr "." " " | awk '{print $1}')"
+if [ "$avg_latency" -le 50 ]; then
+  echo "Normal latency ($avg_latency ms)"
+else
+  echo "High latency ($avg_latency ms)"
+fi
+
 # Wrong IP address, subnet mask, or gateway
 # Routing table issues or misconfigured routes
 # Firewall blocking traffic
