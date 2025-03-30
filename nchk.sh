@@ -46,8 +46,9 @@ fi
 
 # Wrong IP address
 echo -n "Checking for assigned IP address and subnet mask: "
-ip_address="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " " | awk '{print $1}')"
-subnet_mask="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " " | awk '{print $2}')"
+ip_and_mask="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " ")"
+ip_address="$(echo "$ip_and_mask" | awk '{print $1}')"
+subnet_mask="$(echo "$ip_and_mask" | awk '{print $2}')"
 if [ -z "$ip_address" ]; then
   echo "No IP address"
   exit 1;
