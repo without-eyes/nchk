@@ -67,7 +67,15 @@ else
   exit 1
 fi
 
-# DHCP is not working(checking link-local addresses)
+# DHCP is not working
+echo -n "Checking if DHCP is working: "
+if ip a | grep -q "dynamic"; then
+  echo "Working"
+else
+  echo "Not working"
+  exit 1
+fi
+
 # Routing table issues or misconfigured routes
 # Firewall blocking traffic
 # ISP issues or upstream network failures
