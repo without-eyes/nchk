@@ -58,7 +58,15 @@ else
   echo "Everything is assigned"
 fi
 
-# Bad gateway
+# No default gateway
+echo -n "Checking if default gateway is existing: "
+if ip r | grep -q "default"; then
+  echo "Exists"
+else
+  echo "Not exists"
+  exit 1
+fi
+
 # DHCP is not working(checking link-local addresses)
 # Routing table issues or misconfigured routes
 # Firewall blocking traffic
