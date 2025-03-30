@@ -76,8 +76,15 @@ else
   exit 1
 fi
 
-# Routing table issues or misconfigured routes
 # Firewall blocking traffic
+echo -n "Checking firewall rules: "
+if sudo iptables -L -n --line-numbers | grep "DROP\|REJECT"; then
+  echo "Firewall can be blocking traffic"
+  exit 1
+else
+  echo "Firewall is not blocking traffic"
+fi
+
 # ISP issues or upstream network failures
 # Incorrect MAC address configuration
 # Wifi is not turned on or ethernet is not connected
