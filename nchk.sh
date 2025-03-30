@@ -77,12 +77,16 @@ else
 fi
 
 # Firewall blocking traffic
-echo -n "Checking firewall rules: "
-if sudo iptables -L -n --line-numbers | grep "DROP\|REJECT"; then
-  echo "Firewall can be blocking traffic"
-  exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo "Skipping firewall check: Run as root (sudo) to check iptables"
 else
-  echo "Firewall is not blocking traffic"
+    echo -n "Checking firewall rules: "
+    if sudo iptables -L -n --line-numbers | grep -qE "DROP|REJECT"; then
+        echo "Firewall might be blocking traffic"
+        exit 1
+    else
+        echo "Firewall is not blocking traffic"
+    fi
 fi
 
 # Incorrect MAC address configuration
