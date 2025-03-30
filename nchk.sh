@@ -95,5 +95,11 @@ else
     exit 1
 fi
 
-# Wifi is not turned on or ethernet is not connected
-# Other
+# Wi-fi is not turned on or ethernet is not connected
+echo -n "Checking if Ethernet or Wi-Fi is connected: "
+if ip link show | grep -q "state UP"; then
+    echo "Connected"
+else
+    echo "Not connected"
+    exit 1
+fi
