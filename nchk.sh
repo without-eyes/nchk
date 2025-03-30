@@ -30,24 +30,28 @@ fi
 
 # Packet loss
 ip_address="8.8.8.8"
-
-echo -n "Checking packet loss: "
-ping_result=$(ping -q -c 10 -i 0.2 -w 3 "$ip_address")
-packet_loss=$(echo "$ping_result" | grep -oP '\d+(?=% packet loss)')
-if [ "$packet_loss" -eq 0 ]; then
-  echo "No packet loss"
+ping_result=$(ping -q -c 10 -i 0.2 -w 3 "$ip_address" 2>/dev/null)
+if [ -n "$ping_result" ]; then
+  echo -n "Checking packet loss: "
+  packet_loss=$(echo "$ping_result" | grep -oP '\d+(?=% packet loss)')
+  if [ "$packet_loss" -eq 0 ]; then
+    echo "No packet loss"
+  else
+    echo -e "\033[31mPacket loss is $packet_loss\033[0m"
+  fi
 else
-  echo -e "\033[31mPacket loss is $packet_loss\033[0m"
-
+  echo -e "\033[31mCannot ping: Network is unreachable\033[0m"
 fi
 
 # Latency
-echo -n "Checking latency: "
-avg_latency="$(echo "$ping_result" | sed -n 5p | tr "/" " " | awk '{print $8}' | tr "." " " | awk '{print $1}')"
-if [ "$avg_latency" -le 50 ]; then
-  echo "Normal latency ($avg_latency ms)"
-else
-  echo -e "\033[31mHigh latency ($avg_latency ms)\033[0m"
+if [ -n "$ping_result" ]; then
+  echo -n "Checking latency: "
+  avg_latency="$(echo "$ping_result" | sed -n 5p | tr "/" " " | awk '{print $8}' | tr "." " " | awk '{print $1}')"
+  if [ "$avg_latency" -le 50 ]; then
+    echo "Normal latency ($avg_latency ms)"
+  else
+    echo -e "\033[31mHigh latency ($avg_latency ms)\033[0m"
+  fi
 fi
 
 # Wrong IP address
