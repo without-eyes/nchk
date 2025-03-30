@@ -48,10 +48,10 @@ fi
 echo -n "Checking for assigned IP address and subnet mask: "
 ip_address="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " " | awk '{print $1}')"
 subnet_mask="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " " | awk '{print $2}')"
-if [ -s ip_address ]; then
+if [ -z "$ip_address" ]; then
   echo "No IP address"
   exit 1;
-elif [ -s subnet_mask ]; then
+elif [ -z "$subnet_mask" ]; then
   echo "No subnet mask"
   exit 1;
 else
