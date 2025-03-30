@@ -85,7 +85,15 @@ else
   echo "Firewall is not blocking traffic"
 fi
 
-# ISP issues or upstream network failures
 # Incorrect MAC address configuration
+echo -n "Checking if MAC address is valid: "
+mac_address=$(ip link show | grep -oP '(?<=link/ether )[^ ]+')
+if [[ "$mac_address" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
+    echo "Valid"
+else
+    echo "Invalid"
+    exit 1
+fi
+
 # Wifi is not turned on or ethernet is not connected
 # Other
