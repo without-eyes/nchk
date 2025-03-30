@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# DNS resolution
+# No internet connectivity
 url="google.com"
-echo -n "Checking DNS resolution: "
+echo -n "Checking internet connectivity: "
+if curl -Is "$url" | head -n 1 | grep -q "200\|301"; then
+    echo "Online"
+else
+    echo "Offline"
+fi
 
+# DNS resolution
+echo -n "Checking DNS resolution: "
 if dig +short "$url" | grep -qE '^[0-9]'; then
   echo "Success"
 else
