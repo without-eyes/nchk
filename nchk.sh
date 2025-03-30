@@ -26,8 +26,6 @@ else
   else
     echo "DNS server might be unreachable or misconfigured."
   fi
-
-  exit 1
 fi
 
 # Packet loss
@@ -56,12 +54,12 @@ echo -n "Checking for assigned IP address and subnet mask: "
 ip_and_mask="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " ")"
 ip_address="$(echo "$ip_and_mask" | awk '{print $1}')"
 subnet_mask="$(echo "$ip_and_mask" | awk '{print $2}')"
-if [ -z "$ip_address" ]; then
+if [ -z "$ip_address" ] && [ -z "$subnet_mask" ]; then
+  echo "No IP address and subnet mask"
+elif [ -z "$ip_address" ]; then
   echo "No IP address"
-  exit 1;
 elif [ -z "$subnet_mask" ]; then
   echo "No subnet mask"
-  exit 1;
 else
   echo "Everything is assigned"
 fi
@@ -72,7 +70,6 @@ if ip r | grep -q "default"; then
   echo "Exists"
 else
   echo "Not exists"
-  exit 1
 fi
 
 # DHCP is not working
@@ -81,7 +78,6 @@ if ip a | grep -q "dynamic"; then
   echo "Working"
 else
   echo "Not working"
-  exit 1
 fi
 
 # Firewall blocking traffic
@@ -91,7 +87,6 @@ else
     echo -n "Checking firewall rules: "
     if sudo iptables -L -n --line-numbers | grep -qE "DROP|REJECT"; then
         echo "Firewall might be blocking traffic"
-        exit 1
     else
         echo "Firewall is not blocking traffic"
     fi
@@ -104,7 +99,6 @@ if [[ "$mac_address" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
     echo "Valid"
 else
     echo "Invalid"
-    exit 1
 fi
 
 # Wi-fi is not turned on or ethernet is not connected
@@ -113,5 +107,4 @@ if ip link show | grep -q "state UP"; then
     echo "Connected"
 else
     echo "Not connected"
-    exit 1
 fi
