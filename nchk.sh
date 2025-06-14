@@ -1,30 +1,38 @@
 #!/bin/bash
 
+print_success() {
+    echo -e "\033[32m$1\033[0m" # green color
+}
+
+print_error() {
+    echo -e "\033[31m$1\033[0m" # red color
+}
+
 # No internet connectivity
 url="google.com"
 echo -n "Checking internet connectivity: "
 if curl -Is "$url" | head -n 1 | grep -q "200\|301"; then
-    echo "Online"
+    print_success "Online"
 else
-    echo -e "\033[31mOffline\033[0m"
+    print_error "Offline"
 fi
 
 # DNS resolution
 echo -n "Checking DNS resolution: "
 if dig +short "$url" | grep -qE '^[0-9]'; then
-  echo "Success"
+  print_success "Success"
 else
-  echo -e "\033[31mFailure\033[0m"
+  print_error "Failure"
 
   resolv_file_path="/etc/resolv.conf"
-  echo -n "Problem: "
+  print_error "Problem: "
 
   if [ ! -f "$resolv_file_path" ]; then
-    echo "$resolv_file_path not found."
+    print_error "$resolv_file_path not found."
   elif [ ! -s "$resolv_file_path" ]; then
-    echo "$resolv_file_path is empty."
+    print_error "$resolv_file_path is empty."
   else
-    echo -e "\033[31mDNS server might be unreachable or misconfigured\033[0m"
+    print_error "DNS server might be unreachable or misconfigured"
   fi
 fi
 
@@ -35,12 +43,12 @@ if [ -n "$ping_result" ]; then
   echo -n "Checking packet loss: "
   packet_loss=$(echo "$ping_result" | grep -oP '\d+(?=% packet loss)')
   if [ "$packet_loss" -eq 0 ]; then
-    echo "No packet loss"
+    print_success "No packet loss"
   else
-    echo -e "\033[31mPacket loss is $packet_loss\033[0m"
+    print_error "Packet loss is $packet_loss"
   fi
 else
-  echo -e "\033[31mCannot ping: Network is unreachable\033[0m"
+  print_error "Cannot ping: Network is unreachable"
 fi
 
 # Latency
@@ -48,9 +56,9 @@ if [ -n "$ping_result" ]; then
   echo -n "Checking latency: "
   avg_latency="$(echo "$ping_result" | sed -n 5p | tr "/" " " | awk '{print $8}' | tr "." " " | awk '{print $1}')"
   if [ "$avg_latency" -le 50 ]; then
-    echo "Normal latency ($avg_latency ms)"
+    print_success "Normal latency ($avg_latency ms)"
   else
-    echo -e "\033[31mHigh latency ($avg_latency ms)\033[0m"
+    print_error "High latency ($avg_latency ms)"
   fi
 fi
 
@@ -60,40 +68,40 @@ ip_and_mask="$(ip a | grep "inet " | awk '{print $2}' | tr "/" " ")"
 ip_address="$(echo "$ip_and_mask" | awk '{print $1}')"
 subnet_mask="$(echo "$ip_and_mask" | awk '{print $2}')"
 if [ -z "$ip_address" ] && [ -z "$subnet_mask" ]; then
-  echo -e "\033[31mNo IP address and subnet mask\033[0m"
+  print_error "No IP address and subnet mask"
 elif [ -z "$ip_address" ]; then
-  echo -e "\033[31mNo IP address\033[0m"
+  print_error "No IP address"
 elif [ -z "$subnet_mask" ]; then
-  echo -e "\033[31mNo subnet mask\033[0m"
+  print_error "No subnet mask"
 else
-  echo "Everything is assigned"
+  print_success "Everything is assigned"
 fi
 
 # No default gateway
 echo -n "Checking if default gateway is existing: "
 if ip r | grep -q "default"; then
-  echo "Exists"
+  print_success "Exists"
 else
-  echo -e "\033[31mNot exists\033[0m"
+  print_error "Not exists"
 fi
 
 # DHCP is not working
 echo -n "Checking if DHCP is working: "
 if ip a | grep -q "dynamic"; then
-  echo "Working"
+  print_success "Working"
 else
-  echo -e "\033[31mNot working\033[0m"
+  print_error "Not working"
 fi
 
 # Firewall blocking traffic
 if [[ $EUID -ne 0 ]]; then
-    echo -e "\033[31mSkipping firewall check: Run as root (sudo) to check iptables\033[0m"
+    print_error "Skipping firewall check: Run as root (sudo) to check iptables"
 else
     echo -n "Checking firewall rules: "
     if sudo iptables -L -n --line-numbers | grep -qE "DROP|REJECT"; then
-        echo -e "\033[31mFirewall might be blocking traffic\033[0m"
+        print_error "Firewall might be blocking traffic"
     else
-        echo "Firewall is not blocking traffic"
+        print_success "Firewall is not blocking traffic"
     fi
 fi
 
@@ -101,15 +109,15 @@ fi
 echo -n "Checking if MAC address is valid: "
 mac_address=$(ip link show | grep -oP '(?<=link/ether )[^ ]+')
 if [[ "$mac_address" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
-    echo "Valid"
+    print_success "Valid"
 else
-    echo -e "\033[31mInvalid\033[0m"
+    print_error "Invalid"
 fi
 
 # Wi-fi is not turned on or ethernet is not connected
 echo -n "Checking if Ethernet or Wi-Fi is connected: "
 if ip link show | grep -q "state UP"; then
-    echo "Connected"
+    print_success "Connected"
 else
-    echo -e "\033[31mNot connected\033[0m"
+    print_error "Not connected"
 fi
