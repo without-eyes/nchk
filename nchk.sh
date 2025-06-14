@@ -94,7 +94,7 @@ else
 fi
 
 # Firewall blocking traffic
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
     print_error "Skipping firewall check: Run as root (sudo) to check iptables"
 else
     echo -n "Checking firewall rules: "
@@ -108,7 +108,7 @@ fi
 # Incorrect MAC address configuration
 echo -n "Checking if MAC address is valid: "
 mac_address=$(ip link show | grep -oP '(?<=link/ether )[^ ]+')
-if [[ "$mac_address" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
+if echo "$mac_address" | grep -Eq '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$'; then
     print_success "Valid"
 else
     print_error "Invalid"
