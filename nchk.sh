@@ -16,6 +16,46 @@ print_error() {
     echo -e "\033[31m$1\033[0m" # red color
 }
 
+ask_permission_to_fix() {
+    while true; do
+        read -p "Do you wish to auto-fix this problem? " yn
+        case $yn in
+            [Yy] ) fix_problem "$1"; break;;
+            [Nn] ) break;;
+            * ) echo "Please answer \"y\" or \"n\".";;
+        esac
+    done
+}
+
+fix_problem() {
+    target=$1
+    case "$target" in
+        "firewall")
+            echo "Flushing firewall rules..."
+            sudo iptables -F
+            print_success "Firewall rules reset."
+            ;;
+
+        "dgateway")
+            echo "Attempting to restart network/dhcp service..."
+            sudo systemctl restart NetworkManager 2>/dev/null || sudo systemctl restart networking 2>/dev/null
+            print_success "Network service restarted."
+            ;;
+
+        "ipmask")
+            echo "Re-requesting IP address via DHCP..."
+            sudo dhclient -r && sudo dhclient
+            print_success "DHCP lease renewed."
+            ;;
+
+        "dns")
+            echo "Adding fallback Google DNS (8.8.8.8) to resolv.conf..."
+            echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+            print_success "Fallback DNS added."
+            ;;
+    esac    
+}
+
 
 # ===== CHECKS =====
 
@@ -43,6 +83,7 @@ else
     echo -n "Checking firewall rules: "
     if sudo iptables -L -n --line-numbers | grep -qE "DROP|REJECT"; then
         print_error "Firewall might be blocking traffic"
+        ask_permission_to_fix "firewall"
     else
         print_success "Firewall is not blocking traffic"
     fi
@@ -62,6 +103,7 @@ if ip r | grep -q "default"; then
   print_success "Exists"
 else
   print_error "Not exists"
+  ask_permission_to_fix "dgateway"
 fi
 
 # 6. Assigned IP address and subnet mask
@@ -71,10 +113,13 @@ ip_address="$(echo "$ip_and_mask" | awk '{print $1}')"
 subnet_mask="$(echo "$ip_and_mask" | awk '{print $2}')"
 if [ -z "$ip_address" ] && [ -z "$subnet_mask" ]; then
   print_error "No IP address and subnet mask"
+  ask_permission_to_fix "ipmask"
 elif [ -z "$ip_address" ]; then
   print_error "No IP address"
+  ask_permission_to_fix "ipmask"
 elif [ -z "$subnet_mask" ]; then
   print_error "No subnet mask"
+  ask_permission_to_fix "ipmask"
 else
   print_success "Everything is assigned"
 fi
@@ -125,6 +170,8 @@ else
   else
     print_error "DNS server might be unreachable or misconfigured"
   fi
+
+  ask_permission_to_fix "dns"
 fi
 
 # 10. Internet connectivity
