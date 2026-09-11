@@ -3,6 +3,8 @@
 #!/usr/bin/env bash
 set -e
 
+[ "$UID" -eq 0 ] || exec sudo "$0" "$@"
+
 # Detect and install curl based on the available package manager
 if ! command -v curl &> /dev/null; then
     echo "curl is missing. Attempting installation..."
