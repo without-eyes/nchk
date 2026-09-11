@@ -9,7 +9,7 @@ print_success() {
 }
 
 print_warning() {
-    echo -e "\033[33m$1\033[0m" # green color
+    echo -e "\033[33m$1\033[0m" # yellow color
 }
 
 print_error() {
