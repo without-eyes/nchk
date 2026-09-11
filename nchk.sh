@@ -16,7 +16,17 @@ print_error() {
     echo -e "\033[31m$1\033[0m" # red color
 }
 
+print_usage() {
+    echo "Usage: nchk [-f | --auto-fix]"
+}
+
 ask_permission_to_fix() {
+    if [ "$autofix_flag" = "true" ]; then
+        echo "Auto-fixing problem..."
+        fix_problem "$1"
+        return
+    fi
+
     while true; do
         read -p "Do you wish to auto-fix this problem? " yn
         case $yn in
@@ -55,6 +65,42 @@ fix_problem() {
             ;;
     esac    
 }
+
+
+# ===== FLAG PARSING =====
+
+TEMP_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --auto-fix)
+            TEMP_ARGS+=("-f")
+            shift
+            ;;
+        --)
+            shift
+            TEMP_ARGS+=("$@")
+            break
+            ;;
+        -* )
+            TEMP_ARGS+=("$1")
+            shift
+            ;;
+        * )
+            TEMP_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+set -- "${TEMP_ARGS[@]}"
+
+autofix_flag=''
+while getopts 'f' flag; do
+  case "${flag}" in
+    f) autofix_flag='true' ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
 
 
 # ===== CHECKS =====
