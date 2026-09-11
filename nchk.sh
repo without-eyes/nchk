@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ "$UID" -eq 0 ] || exec sudo "$0" "$@"
+
 print_success() {
     echo -e "\033[32m$1\033[0m" # green color
 }
