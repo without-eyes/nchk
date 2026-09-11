@@ -8,6 +8,10 @@ print_success() {
     echo -e "\033[32m$1\033[0m" # green color
 }
 
+print_warning() {
+    echo -e "\033[33m$1\033[0m" # green color
+}
+
 print_error() {
     echo -e "\033[31m$1\033[0m" # red color
 }
@@ -96,6 +100,8 @@ if [ -n "$ping_result" ]; then
   avg_latency="$(echo "$ping_result" | sed -n 5p | tr "/" " " | awk '{print $8}' | tr "." " " | awk '{print $1}')"
   if [ "$avg_latency" -le 50 ]; then
     print_success "Normal latency ($avg_latency ms)"
+  elif [ "$avg_latency" -le 100 ]; then
+    print_warning "Slightly high latency ($avg_latency ms)"
   else
     print_error "High latency ($avg_latency ms)"
   fi
